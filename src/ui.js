@@ -31,7 +31,6 @@ const selector = (state) => ({
   onEdgesChange: state.onEdgesChange,
   onConnect: state.onConnect,
 });
-
 export const PipelineUI = () => {
   const reactFlowWrapper = useRef(null);
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
@@ -43,12 +42,24 @@ export const PipelineUI = () => {
     onNodesChange,
     onEdgesChange,
     onConnect,
+    setNodes,
   } = useStore(selector, shallow);
 
   const getInitNodeData = (nodeID, type) => {
-    let nodeData = { id: nodeID, nodeType: `${type}` };
+    let nodeData = {
+      id: nodeID,
+      nodeType: `${type}`,
+      onRemoveNode: (nodeId) => handleRemoveNode(nodeId), // Pass the remove handler
+    };
     return nodeData;
   };
+
+  const handleRemoveNode = useCallback(
+    (nodeId) => {
+      setNodes((prevNodes) => prevNodes.filter((node) => node.id !== nodeId));
+    },
+    [setNodes]
+  );
 
   const onDrop = useCallback(
     (event) => {
@@ -61,7 +72,6 @@ export const PipelineUI = () => {
         );
         const type = appData?.nodeType;
 
-        // check if the dropped element is valid
         if (typeof type === "undefined" || !type) {
           return;
         }
@@ -82,7 +92,7 @@ export const PipelineUI = () => {
         addNode(newNode);
       }
     },
-    [reactFlowInstance]
+    [reactFlowInstance, addNode, getNodeID]
   );
 
   const onDragOver = useCallback((event) => {
